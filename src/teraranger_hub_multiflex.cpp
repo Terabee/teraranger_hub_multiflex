@@ -106,60 +106,65 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
   static uint8_t input_buffer[BUFFER_SIZE];
   static int buffer_ctr = 0;
   static int seq_ctr = 0;
+  static float min_range = 0.05;
+  static float max_range = 2.0;
+  static float field_of_view = 0.0593;
+  static int int_min_range = (int)min_range*1000;
+  static int int_max_range = (int)max_range*1000;
 
   sensor_msgs::Range range_msg0;
-  range_msg0.field_of_view = 0.0593;
-  range_msg0.max_range = 3.0;
-  range_msg0.min_range = 0.06;
+  range_msg0.field_of_view = field_of_view;
+  range_msg0.max_range = max_range;
+  range_msg0.min_range = min_range;
   range_msg0.radiation_type = sensor_msgs::Range::INFRARED;
   range_msg0.header.frame_id = ros::names::append(ns_, std::string("base_range_0"));
 
   sensor_msgs::Range range_msg1;
-  range_msg1.field_of_view = 0.0593;
-  range_msg1.max_range = 3.0;
-  range_msg1.min_range = 0.06;
+  range_msg1.field_of_view = field_of_view;
+  range_msg1.max_range = max_range;
+  range_msg1.min_range = min_range;
   range_msg1.radiation_type = sensor_msgs::Range::INFRARED;
   range_msg1.header.frame_id = ros::names::append(ns_, std::string("base_range_1"));
 
   sensor_msgs::Range range_msg2;
-  range_msg2.field_of_view = 0.0593;
-  range_msg2.max_range = 3.0;
-  range_msg2.min_range = 0.06;
+  range_msg2.field_of_view = field_of_view;
+  range_msg2.max_range = max_range;
+  range_msg2.min_range = min_range;
   range_msg2.radiation_type = sensor_msgs::Range::INFRARED;
   range_msg2.header.frame_id= ros::names::append(ns_, std::string("base_range_2"));
 
   sensor_msgs::Range range_msg3;
-  range_msg3.field_of_view = 0.0593;
-  range_msg3.max_range = 3.0;
-  range_msg3.min_range = 0.06;
+  range_msg3.field_of_view = field_of_view;
+  range_msg3.max_range = max_range;
+  range_msg3.min_range = min_range;
   range_msg3.radiation_type = sensor_msgs::Range::INFRARED;
   range_msg3.header.frame_id= ros::names::append(ns_, std::string("base_range_3"));
 
   sensor_msgs::Range range_msg4;
-  range_msg4.field_of_view = 0.0593;
-  range_msg4.max_range = 3.0;
-  range_msg4.min_range = 0.06;
+  range_msg4.field_of_view = field_of_view;
+  range_msg4.max_range = max_range;
+  range_msg4.min_range = min_range;
   range_msg4.radiation_type = sensor_msgs::Range::INFRARED;
   range_msg4.header.frame_id= ros::names::append(ns_, std::string("base_range_4"));
 
   sensor_msgs::Range range_msg5;
-  range_msg5.field_of_view = 0.0593;
-  range_msg5.max_range = 3.0;
-  range_msg5.min_range = 0.06;
+  range_msg5.field_of_view = field_of_view;
+  range_msg5.max_range = max_range;
+  range_msg5.min_range = min_range;
   range_msg5.radiation_type = sensor_msgs::Range::INFRARED;
   range_msg5.header.frame_id= ros::names::append(ns_, std::string("base_range_5"));
 
   sensor_msgs::Range range_msg6;
-  range_msg6.field_of_view = 0.0593;
-  range_msg6.max_range = 3.0;
-  range_msg6.min_range = 0.06;
+  range_msg6.field_of_view = field_of_view;
+  range_msg6.max_range = max_range;
+  range_msg6.min_range = min_range;
   range_msg6.radiation_type = sensor_msgs::Range::INFRARED;
   range_msg6.header.frame_id= ros::names::append(ns_, std::string("base_range_6"));
 
   sensor_msgs::Range range_msg7;
-  range_msg7.field_of_view = 0.0593;
-  range_msg7.max_range = 3.0;
-  range_msg7.min_range = 0.06;
+  range_msg7.field_of_view = field_of_view;
+  range_msg7.max_range = max_range;
+  range_msg7.min_range = min_range;
   range_msg7.radiation_type = sensor_msgs::Range::INFRARED;
   range_msg7.header.frame_id= ros::names::append(ns_, std::string("base_range_7"));
 
