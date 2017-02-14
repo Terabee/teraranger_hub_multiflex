@@ -47,7 +47,7 @@
 #include "teraranger_hub_multiflex/serial_port.h"
 #include "teraranger_hub_multiflex/Teraranger_hub_multiflexConfig.h"
 
-#define BUFFER_SIZE 19
+#define BUFFER_SIZE 20
 
 namespace teraranger_hub_multiflex
 {
