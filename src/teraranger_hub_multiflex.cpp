@@ -81,10 +81,6 @@ Teraranger_hub_multiflex::Teraranger_hub_multiflex()
  setMode(BINARY_MODE);
 
   // Initialize all active sensors
-  for(int i=0; i<8; i++)
-  {
-  	sensor_bit_mask[i] = 1;
-  }
 
   // Dynamic reconfigure
   dyn_param_server_callback_function_ = boost::bind(&Teraranger_hub_multiflex::dynParamCallback, this, _1, _2);
@@ -197,7 +193,7 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
       }
       else
       {
-        ROS_DEBUG("[%s] crc missmatch", ros::this_node::getName().c_str());
+        ROS_ERROR("[%s] crc missmatch", ros::this_node::getName().c_str());
       }
     }
     else
@@ -208,7 +204,7 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
   }
   else
   {
-    ROS_DEBUG("[%s] buffer_overflowed without receiving M, reset input_buffer", ros::this_node::getName().c_str());
+    ROS_INFO("[%s] buffer_overflowed without receiving M, reset input_buffer", ros::this_node::getName().c_str());
   }
 
   // reset
