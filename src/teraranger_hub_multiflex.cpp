@@ -35,6 +35,7 @@
  ****************************************************************************/
 
 #include <string>
+#include <sstream>
 
 #include "teraranger_hub_multiflex/teraranger_hub_multiflex.h"
 
@@ -79,6 +80,12 @@ Teraranger_hub_multiflex::Teraranger_hub_multiflex()
   // Set operation Mode
  setMode(BINARY_MODE);
 
+  // Initialize all active sensors
+  for(int i=0; i<8; i++)
+  {
+  	sensor_bit_mask[i] = 1;
+  }
+
   // Dynamic reconfigure
   dyn_param_server_callback_function_ = boost::bind(&Teraranger_hub_multiflex::dynParamCallback, this, _1, _2);
   dyn_param_server_.setCallback(dyn_param_server_callback_function_);
@@ -112,64 +119,21 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
   static int int_min_range = (int)min_range*1000;
   static int int_max_range = (int)max_range*1000;
 
-  sensor_msgs::Range range_msg0;
-  range_msg0.field_of_view = field_of_view;
-  range_msg0.max_range = max_range;
-  range_msg0.min_range = min_range;
-  range_msg0.radiation_type = sensor_msgs::Range::INFRARED;
-  range_msg0.header.frame_id = ros::names::append(ns_, std::string("base_range_0"));
 
-  sensor_msgs::Range range_msg1;
-  range_msg1.field_of_view = field_of_view;
-  range_msg1.max_range = max_range;
-  range_msg1.min_range = min_range;
-  range_msg1.radiation_type = sensor_msgs::Range::INFRARED;
-  range_msg1.header.frame_id = ros::names::append(ns_, std::string("base_range_1"));
+  sensor_msgs::Range sensors[8];
+  for(int i=0; i<8; i++)
+  	{
+		sensors[i].field_of_view = field_of_view;
+		sensors[i].max_range = max_range;
+		sensors[i].min_range = min_range;
+		sensors[i].radiation_type = sensor_msgs::Range::INFRARED;
 
-  sensor_msgs::Range range_msg2;
-  range_msg2.field_of_view = field_of_view;
-  range_msg2.max_range = max_range;
-  range_msg2.min_range = min_range;
-  range_msg2.radiation_type = sensor_msgs::Range::INFRARED;
-  range_msg2.header.frame_id= ros::names::append(ns_, std::string("base_range_2"));
+		std::string frame="base_range_";
+		std::string frame_id = frame + IntToString(i);
+		sensors[i].header.frame_id = ros::names::append(ns_, frame_id);
+	}
 
-  sensor_msgs::Range range_msg3;
-  range_msg3.field_of_view = field_of_view;
-  range_msg3.max_range = max_range;
-  range_msg3.min_range = min_range;
-  range_msg3.radiation_type = sensor_msgs::Range::INFRARED;
-  range_msg3.header.frame_id= ros::names::append(ns_, std::string("base_range_3"));
-
-  sensor_msgs::Range range_msg4;
-  range_msg4.field_of_view = field_of_view;
-  range_msg4.max_range = max_range;
-  range_msg4.min_range = min_range;
-  range_msg4.radiation_type = sensor_msgs::Range::INFRARED;
-  range_msg4.header.frame_id= ros::names::append(ns_, std::string("base_range_4"));
-
-  sensor_msgs::Range range_msg5;
-  range_msg5.field_of_view = field_of_view;
-  range_msg5.max_range = max_range;
-  range_msg5.min_range = min_range;
-  range_msg5.radiation_type = sensor_msgs::Range::INFRARED;
-  range_msg5.header.frame_id= ros::names::append(ns_, std::string("base_range_5"));
-
-  sensor_msgs::Range range_msg6;
-  range_msg6.field_of_view = field_of_view;
-  range_msg6.max_range = max_range;
-  range_msg6.min_range = min_range;
-  range_msg6.radiation_type = sensor_msgs::Range::INFRARED;
-  range_msg6.header.frame_id= ros::names::append(ns_, std::string("base_range_6"));
-
-  sensor_msgs::Range range_msg7;
-  range_msg7.field_of_view = field_of_view;
-  range_msg7.max_range = max_range;
-  range_msg7.min_range = min_range;
-  range_msg7.radiation_type = sensor_msgs::Range::INFRARED;
-  range_msg7.header.frame_id= ros::names::append(ns_, std::string("base_range_7"));
-
-
- if (single_character != 'M' && buffer_ctr < 19)
+ if (single_character != 'M' && buffer_ctr < 20)
   {
     // not begin of serial feed so add char to buffer
     input_buffer[buffer_ctr++] = single_character;
@@ -180,144 +144,55 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
   else if (single_character == 'M')
   {
 
-    if (buffer_ctr == 19)
+    if (buffer_ctr == 20)
     {
       // end of feed, calculate
-      int16_t crc = crc8(input_buffer, 18);
+      int16_t crc = crc8(input_buffer, 19);
 
-      if (crc == input_buffer[18])
+      if (crc == input_buffer[19])
       {
-        int16_t range0 = input_buffer[2] << 8;
-        range0 |= input_buffer[3];
-        int16_t range1 = input_buffer[4] << 8;
-        range1 |= input_buffer[5];
-        int16_t range2 = input_buffer[6] << 8;
-        range2 |= input_buffer[7];
-        int16_t range3 = input_buffer[8] << 8;
-        range3 |= input_buffer[9];
-        int16_t range4 = input_buffer[10] << 8;
-        range4 |= input_buffer[11];
-        int16_t range5 = input_buffer[12] << 8;
-        range5 |= input_buffer[13];
-        int16_t range6 = input_buffer[14] << 8;
-        range6 |= input_buffer[15];
-        int16_t range7 = input_buffer[16] << 8;
-        range7 |= input_buffer[17];
 
-        if (range0 < 3000 && range0 > 60)
-        {
-          range_msg0.header.stamp = ros::Time::now();
-          range_msg0.header.seq = seq_ctr++;
-          range_msg0.range = range0 * 0.001; // convert to m
-	  range_publisher_.publish(range_msg0);
-        }
-	else{
+		for(int i=0;i<20;i++)
+		{
+			ROS_DEBUG("%d %x \t",i,input_buffer[i]);
+		}
 
-          range_msg0.header.stamp = ros::Time::now();
-          range_msg0.header.seq = seq_ctr++;
-          range_msg0.range = 0.0 ;
-	  range_publisher_.publish(range_msg0);
-}
-        if (range1 < 3000 && range1 > 60)
-        {
-          range_msg1.header.stamp = ros::Time::now();
-          range_msg1.header.seq = seq_ctr++;
-          range_msg1.range = range1 * 0.001;
-          range_publisher_.publish(range_msg1);
-	}
-        else{
+		int16_t ranges[8];
+		for(int i=0; i<8; i++)
+		{
+			ranges[i] = input_buffer[i*2 + 2] << 8;
+	        ranges[i] |= input_buffer[i*2 + 3];
+		}
 
-          range_msg1.header.stamp = ros::Time::now();
-          range_msg1.header.seq = seq_ctr++;
-          range_msg1.range = 0.0 ;
-	  range_publisher_.publish(range_msg1);
-}
-        if (range2 < 3000 && range2 > 60)
-        {
-          range_msg2.header.stamp = ros::Time::now();
-          range_msg2.header.seq = seq_ctr++;
-          range_msg2.range = range2 * 0.001;
-          range_publisher_.publish(range_msg2);
-	}
-	else{
+		uint8_t bitmask = input_buffer[18];
+		ROS_DEBUG("bit_mask %d", bitmask);
+		uint8_t bit_compare = 1;
 
-          range_msg2.header.stamp = ros::Time::now();
-          range_msg2.header.seq = seq_ctr++;
-          range_msg2.range = 0.0 ;
-          range_publisher_.publish(range_msg2);
-}
-        if (range3 < 3000 && range3 > 60)
-        {
-          range_msg3.header.stamp = ros::Time::now();
-          range_msg3.header.seq = seq_ctr++;
-          range_msg3.range = range3 * 0.001;
-          range_publisher_.publish(range_msg3);
-	}
-	else{
-
-          range_msg3.header.stamp = ros::Time::now();
-          range_msg3.header.seq = seq_ctr++;
-          range_msg3.range = 0.0 ;
-          range_publisher_.publish(range_msg3);
-}
-        if (range4 < 3000 && range4 > 60)
-        {
-          range_msg4.header.stamp = ros::Time::now();
-          range_msg4.header.seq = seq_ctr++;
-          range_msg4.range = range4 * 0.001;
-          range_publisher_.publish(range_msg4);
-	}
-	else{
-
-          range_msg4.header.stamp = ros::Time::now();
-          range_msg4.header.seq = seq_ctr++;
-          range_msg4.range = 0.0;
-          range_publisher_.publish(range_msg4);
-}
-        if (range5 < 3000 && range5 > 60)
-        {
-          range_msg5.header.stamp = ros::Time::now();
-          range_msg5.header.seq = seq_ctr++;
-          range_msg5.range = range5 * 0.001;
-          range_publisher_.publish(range_msg5);
-	}
-	else{
-
-          range_msg5.header.stamp = ros::Time::now();
-          range_msg5.header.seq = seq_ctr++;
-          range_msg5.range = 0.0;
-          range_publisher_.publish(range_msg5);
-}
-        if (range6 < 3000 && range6 > 60)
-        {
-          range_msg6.header.stamp = ros::Time::now();
-          range_msg6.header.seq = seq_ctr++;
-          range_msg6.range = range6 * 0.001;
-          range_publisher_.publish(range_msg6);
-	}
-	else{
-
-          range_msg6.header.stamp = ros::Time::now();
-          range_msg6.header.seq = seq_ctr++;
-          range_msg6.range = 0.0;
-          range_publisher_.publish(range_msg6);
-}
-        if (range7 < 3000 && range7 > 60)
-        {
-          range_msg7.header.stamp = ros::Time::now();
-          range_msg7.header.seq = seq_ctr++;
-          range_msg7.range = range7 * 0.001;
-          range_publisher_.publish(range_msg7);
-	}
-	else{
-
-          range_msg7.header.stamp = ros::Time::now();
-          range_msg7.header.seq = seq_ctr++;
-          range_msg7.range = 0.0;
-          range_publisher_.publish(range_msg7);
-	  }
-
-
+		for(int i=0; i<8; i++)
+		{
+			if ((bitmask & bit_compare) == bit_compare)
+			{
+				if (ranges[i] < int_max_range && ranges[i] > int_min_range)
+				{
+				sensors[i].header.stamp = ros::Time::now();
+				sensors[i].header.seq = seq_ctr++;
+				sensors[i].range = ranges[i] * 0.001; // convert to m
+				range_publisher_.publish(sensors[i]);
+				}
+				else
+				{
+					sensors[i].header.stamp = ros::Time::now();
+					sensors[i].header.seq = seq_ctr++;
+					sensors[i].range = ranges[i];
+				  	range_publisher_.publish(sensors[i]);
+				}
+			}
+			else
+			{
+				ROS_WARN_ONCE("Not all sensors activated set proper bitmask using rosrun rqt_reconfigure rqt_reconfigure");
+			}
+			bit_compare <<= 1;
+		}
 
       }
       else
@@ -352,11 +227,48 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
 
 void Teraranger_hub_multiflex::setMode(const char *c)
 {
- serial_port_->sendChar(c);
+ serial_port_->sendChar(c, 4);
+}
+
+void Teraranger_hub_multiflex::setSensorBitMask(int *sensor_bit_mask_ptr)
+{
+
+ char bit_mask_hex = 0x00;
+ for (int i=0; i<8; i++)
+ {
+	 bit_mask_hex |= *(sensor_bit_mask_ptr +7-i) << (7-i);
+ }
+
+ // calculate crc
+ uint8_t command[4] = {0x00, 0x52, 0x03, bit_mask_hex};
+ int8_t crc = crc8(command, 4);
+
+ //send command
+ char full_command[5] = {0x00, 0x52, 0x03, bit_mask_hex, crc};
+ serial_port_->sendChar(full_command, 5);
 }
 
 void Teraranger_hub_multiflex::dynParamCallback(const teraranger_hub_multiflex::Teraranger_hub_multiflexConfig &config, uint32_t level)
 {
+
+  sensor_bit_mask[0] = config.Sensor_0?1:0;
+  sensor_bit_mask[1] = config.Sensor_1?1:0;
+  sensor_bit_mask[2] = config.Sensor_2?1:0;
+  sensor_bit_mask[3] = config.Sensor_3?1:0;
+  sensor_bit_mask[4] = config.Sensor_4?1:0;
+  sensor_bit_mask[5] = config.Sensor_5?1:0;
+  sensor_bit_mask[6] = config.Sensor_6?1:0;
+  sensor_bit_mask[7] = config.Sensor_7?1:0;
+
+  sensor_bit_mask_ptr = sensor_bit_mask;
+
+  setSensorBitMask(sensor_bit_mask_ptr);
+
+  for(int i = 0; i<8; i++)
+  {
+	  ROS_INFO("Sensor %d is set to %d",i,sensor_bit_mask[i]);
+  }
+
   if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_Fast)
   {
     setMode(FAST_MODE);
@@ -374,9 +286,18 @@ void Teraranger_hub_multiflex::dynParamCallback(const teraranger_hub_multiflex::
     setMode(LONG_RANGE_MODE);
 	ROS_INFO("Long range mode set");
   }
+
+}
+
+std::string Teraranger_hub_multiflex::IntToString( int number )
+{
+	std::ostringstream oss;
+	oss << number;
+	return oss.str();
 }
 
 }
+
 
 int main(int argc, char **argv)
 {
