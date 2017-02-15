@@ -213,7 +213,7 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
   // clear struct
   bzero(&input_buffer, BUFFER_SIZE);
 
-  // store T
+  // store M
   input_buffer[buffer_ctr++] = 'M';
 }  //
 
