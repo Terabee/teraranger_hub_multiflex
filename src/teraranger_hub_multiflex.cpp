@@ -111,7 +111,7 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
   static int seq_ctr = 0;
   static float min_range = 0.05;
   static float max_range = 2.0;
-  static float field_of_view = 0.0593;
+  static float field_of_view = 0.02967;
   static int int_min_range = (int)min_range*1000;
   static int int_max_range = (int)max_range*1000;
 
@@ -298,7 +298,7 @@ std::string Teraranger_hub_multiflex::IntToString( int number )
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "Teraranger_hub_multiflex");
-  teraranger_hub_multiflex::Teraranger_hub_multiflex tera_bee;
+  teraranger_hub_multiflex::Teraranger_hub_multiflex multiflex;
   ros::spin();
 
   return 0;
