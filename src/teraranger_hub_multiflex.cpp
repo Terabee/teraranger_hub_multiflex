@@ -111,7 +111,7 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
   static int seq_ctr = 0;
   static float min_range = 0.05;
   static float max_range = 2.0;
-  static float field_of_view = 0.02967;
+  static float field_of_view = 0.2967;
   static int int_min_range = (int)min_range*1000;
   static int int_max_range = (int)max_range*1000;
 
