@@ -95,6 +95,7 @@ public:
   void dynParamCallback(const teraranger_hub_multiflex::Teraranger_hub_multiflexConfig &config, uint32_t level);
 
   void parseCommand(uint8_t *input_buffer, uint8_t len);
+  std::string arrayToString(uint8_t *input_buffer, uint8_t len);
 
   bool loadParameters();
   void setMode(const char *c);
