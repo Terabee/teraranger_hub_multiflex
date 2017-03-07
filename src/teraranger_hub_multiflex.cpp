@@ -104,64 +104,43 @@ uint8_t Teraranger_hub_multiflex::crc8(uint8_t *p, uint8_t len)
   return crc & 0xFF;
 }
 
-void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
+void Teraranger_hub_multiflex::parseCommand(uint8_t *input_buffer, uint8_t len)
 {
-  static uint8_t input_buffer[BUFFER_SIZE];
-  static int buffer_ctr = 0;
-  static int seq_ctr = 0;
-  static float min_range = 0.05;
-  static float max_range = 2.0;
-  static float field_of_view = 0.2967;
-  static int int_min_range = (int)min_range*1000;
-  static int int_max_range = (int)max_range*1000;
+
+	static float min_range = 0.05;
+	static float max_range = 2.0;
+	static float field_of_view = 0.2967;
+	static int int_min_range = (int)min_range*1000;
+	static int int_max_range = (int)max_range*1000;
+	static int seq_ctr = 0;
 
 
-  sensor_msgs::Range sensors[8];
-  for(int i=0; i<8; i++)
-  	{
-		sensors[i].field_of_view = field_of_view;
-		sensors[i].max_range = max_range;
-		sensors[i].min_range = min_range;
-		sensors[i].radiation_type = sensor_msgs::Range::INFRARED;
+	sensor_msgs::Range sensors[8];
+	for(int i=0; i<8; i++)
+	{
+		  sensors[i].field_of_view = field_of_view;
+		  sensors[i].max_range = max_range;
+		  sensors[i].min_range = min_range;
+		  sensors[i].radiation_type = sensor_msgs::Range::INFRARED;
 
-		std::string frame="base_range_";
-		std::string frame_id = frame + IntToString(i);
-		sensors[i].header.frame_id = ros::names::append(ns_, frame_id);
+		  std::string frame="base_range_";
+		  std::string frame_id = frame + IntToString(i);
+		  sensors[i].header.frame_id = ros::names::append(ns_, frame_id);
 	}
 
- if (single_character != 'M' && buffer_ctr < 20)
-  {
-    // not begin of serial feed so add char to buffer
-    input_buffer[buffer_ctr++] = single_character;
-    return;
-  }
+    int16_t crc = crc8(input_buffer, 19);
 
-
-  else if (single_character == 'M')
-  {
-
-    if (buffer_ctr == 20)
-    {
-      // end of feed, calculate
-      int16_t crc = crc8(input_buffer, 19);
-
-      if (crc == input_buffer[19])
-      {
-
-		for(int i=0;i<20;i++)
-		{
-			ROS_DEBUG("%d %x \t",i,input_buffer[i]);
-		}
+	if (crc == input_buffer[19])
+	{
 
 		int16_t ranges[8];
 		for(int i=0; i<8; i++)
 		{
-			ranges[i] = input_buffer[i*2 + 2] << 8;
-	        ranges[i] |= input_buffer[i*2 + 3];
+		   ranges[i] = input_buffer[i*2 + 2] << 8;
+		   ranges[i] |= input_buffer[i*2 + 3];
 		}
 
 		uint8_t bitmask = input_buffer[18];
-		ROS_DEBUG("bit_mask %d", bitmask);
 		uint8_t bit_compare = 1;
 
 		for(int i=0; i<8; i++)
@@ -189,38 +168,86 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
 			}
 			bit_compare <<= 1;
 		}
-
-      }
-      else
-      {
-        ROS_ERROR("[%s] crc missmatch", ros::this_node::getName().c_str());
-      }
+	}
+	else
+	{
+	  ROS_ERROR("[%s] crc missmatch", ros::this_node::getName().c_str());
     }
-    else
-    {
-      ROS_DEBUG("[%s] reveived M but did not expect it, reset buffer without evaluating data",
-               ros::this_node::getName().c_str());
-    }
-  }
-  else
-  {
-    ROS_INFO("[%s] buffer_overflowed without receiving M, reset input_buffer", ros::this_node::getName().c_str());
-  }
 
-  // reset
-  buffer_ctr = 0;
+}
 
-  // clear struct
-  bzero(&input_buffer, BUFFER_SIZE);
-
-  // store M
-  input_buffer[buffer_ctr++] = 'M';
-}  //
+void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
+{
+	static uint8_t input_buffer[BUFFER_SIZE];
+	static int buffer_ctr = 0;
+	static int size_frame = 5;
+	static char first_char = 'R';
 
 
-//set mode original
+	if (single_character == 'M' && buffer_ctr == 0)
+	{
+		size_frame = 20;
+		first_char = 'M';
+		input_buffer[buffer_ctr] = single_character;
+		buffer_ctr++;
+	}
 
+	else if (single_character == 'R' && buffer_ctr == 0)
+	{
+		size_frame = 5;
+		first_char = 'R';
+		input_buffer[buffer_ctr] = single_character;
+		buffer_ctr++;
+	}
 
+	else if (first_char == 'R' && buffer_ctr < size_frame)
+	{
+		input_buffer[buffer_ctr] = single_character;
+		buffer_ctr++;
+
+		if (buffer_ctr == size_frame)
+		{
+			for(int i=0;i<size_frame;i++)
+			{
+				ROS_DEBUG("Response, %d %x \t",i,input_buffer[i]);
+			}
+			// reset
+			buffer_ctr = 0;
+			// clear struct
+			bzero(&input_buffer, BUFFER_SIZE);
+		}
+	}
+	else if (first_char == 'M' && buffer_ctr < size_frame)
+	{
+		input_buffer[buffer_ctr] = single_character;
+		buffer_ctr++;
+		if (buffer_ctr == size_frame)
+		{
+			std::ostringstream convert;
+			for (int a = 0; a < size_frame; a++) {
+			    convert << std::uppercase << std::hex << (int)input_buffer[a];
+				convert << std::uppercase << std::hex << " ";
+			}
+			std::string key_string = convert.str();
+			ROS_DEBUG_STREAM("Commanding... : " << key_string);
+
+			parseCommand(input_buffer,19);
+			// reset
+			buffer_ctr = 0;
+			// clear struct
+			bzero(&input_buffer, BUFFER_SIZE);
+
+		}
+	}
+	else
+	{
+		ROS_DEBUG("Received uknown character %x", single_character);
+		// reset
+		buffer_ctr = 0;
+		// clear struct
+		bzero(&input_buffer, BUFFER_SIZE);
+	}
+}
 void Teraranger_hub_multiflex::setMode(const char *c)
 {
  serial_port_->sendChar(c, 4);
@@ -229,58 +256,71 @@ void Teraranger_hub_multiflex::setMode(const char *c)
 void Teraranger_hub_multiflex::setSensorBitMask(int *sensor_bit_mask_ptr)
 {
 
- char bit_mask_hex = 0x00;
+ uint8_t bit_mask_hex=0x00;
  for (int i=0; i<8; i++)
  {
 	 bit_mask_hex |= *(sensor_bit_mask_ptr +7-i) << (7-i);
  }
 
  // calculate crc
+
  uint8_t command[4] = {0x00, 0x52, 0x03, bit_mask_hex};
  int8_t crc = crc8(command, 4);
 
  //send command
- char full_command[5] = {0x00, 0x52, 0x03, bit_mask_hex, crc};
+ char full_command[5] = {0x00, 0x52, 0x03,bit_mask_hex,crc};
+
+
  serial_port_->sendChar(full_command, 5);
 }
 
 void Teraranger_hub_multiflex::dynParamCallback(const teraranger_hub_multiflex::Teraranger_hub_multiflexConfig &config, uint32_t level)
 {
 
-  sensor_bit_mask[0] = config.Sensor_0?1:0;
-  sensor_bit_mask[1] = config.Sensor_1?1:0;
-  sensor_bit_mask[2] = config.Sensor_2?1:0;
-  sensor_bit_mask[3] = config.Sensor_3?1:0;
-  sensor_bit_mask[4] = config.Sensor_4?1:0;
-  sensor_bit_mask[5] = config.Sensor_5?1:0;
-  sensor_bit_mask[6] = config.Sensor_6?1:0;
-  sensor_bit_mask[7] = config.Sensor_7?1:0;
-
-  sensor_bit_mask_ptr = sensor_bit_mask;
-
-  setSensorBitMask(sensor_bit_mask_ptr);
-
-  for(int i = 0; i<8; i++)
+  if (level == 1)
   {
-	  ROS_INFO("Sensor %d is set to %d",i,sensor_bit_mask[i]);
+	  sensor_bit_mask[0] = config.Sensor_0?1:0;
+	  sensor_bit_mask[1] = config.Sensor_1?1:0;
+	  sensor_bit_mask[2] = config.Sensor_2?1:0;
+	  sensor_bit_mask[3] = config.Sensor_3?1:0;
+	  sensor_bit_mask[4] = config.Sensor_4?1:0;
+	  sensor_bit_mask[5] = config.Sensor_5?1:0;
+	  sensor_bit_mask[6] = config.Sensor_6?1:0;
+	  sensor_bit_mask[7] = config.Sensor_7?1:0;
+
+	  sensor_bit_mask_ptr = sensor_bit_mask;
+
+	  setSensorBitMask(sensor_bit_mask_ptr);
+
+	  for(int i = 0; i<8; i++)
+	  {
+		  ROS_INFO("Sensor %d is set to %d",i,sensor_bit_mask[i]);
+	  }
   }
 
-  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_Fast)
+  else if (level == 0)
   {
-    setMode(FAST_MODE);
-	ROS_INFO("Fast mode set");
-  }
+	  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_Fast)
+	  {
+	    setMode(FAST_MODE);
+		ROS_INFO("Fast mode set");
+	  }
 
-  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_Precise)
-  {
-    setMode(PRECISE_MODE);
-	ROS_INFO("Precise mode set");
-  }
+	  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_Precise)
+	  {
+	    setMode(PRECISE_MODE);
+		ROS_INFO("Precise mode set");
+	  }
 
-  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_LongRange)
+	  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_LongRange)
+	  {
+	    setMode(LONG_RANGE_MODE);
+		ROS_INFO("Long range mode set");
+	  }
+  }
+  else
   {
-    setMode(LONG_RANGE_MODE);
-	ROS_INFO("Long range mode set");
+	  ROS_WARN("Wrong level bitmask, got %d", level);
   }
 
 }
