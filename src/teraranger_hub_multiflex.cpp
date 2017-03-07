@@ -36,6 +36,7 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 #include "teraranger_hub_multiflex/teraranger_hub_multiflex.h"
 
@@ -158,7 +159,7 @@ void Teraranger_hub_multiflex::parseCommand(uint8_t *input_buffer, uint8_t len)
 				{
 					sensors[i].header.stamp = ros::Time::now();
 					sensors[i].header.seq = seq_ctr++;
-					sensors[i].range = ranges[i];
+					sensors[i].range = -1;
 				  	range_publisher_.publish(sensors[i]);
 				}
 			}
@@ -174,6 +175,17 @@ void Teraranger_hub_multiflex::parseCommand(uint8_t *input_buffer, uint8_t len)
 	  ROS_ERROR("[%s] crc missmatch", ros::this_node::getName().c_str());
     }
 
+}
+
+std::string Teraranger_hub_multiflex::arrayToString(uint8_t *input_buffer, uint8_t len)
+{
+	std::ostringstream convert;
+	for (int a = 0; a < len; a++) {
+		convert << std::uppercase << std::hex << std::setfill('0') << std::setw(2) << (int)input_buffer[a];
+		convert << std::uppercase << std::hex << " ";
+	}
+	std::string str = convert.str();
+	return str;
 }
 
 void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
@@ -207,10 +219,8 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
 
 		if (buffer_ctr == size_frame)
 		{
-			for(int i=0;i<size_frame;i++)
-			{
-				ROS_DEBUG("Response, %d %x \t",i,input_buffer[i]);
-			}
+			std::string str = arrayToString(input_buffer,size_frame);
+			ROS_DEBUG_STREAM("Respond frame reveived... : " << str);
 			// reset
 			buffer_ctr = 0;
 			// clear struct
@@ -223,13 +233,8 @@ void Teraranger_hub_multiflex::serialDataCallback(uint8_t single_character)
 		buffer_ctr++;
 		if (buffer_ctr == size_frame)
 		{
-			std::ostringstream convert;
-			for (int a = 0; a < size_frame; a++) {
-			    convert << std::uppercase << std::hex << (int)input_buffer[a];
-				convert << std::uppercase << std::hex << " ";
-			}
-			std::string key_string = convert.str();
-			ROS_DEBUG_STREAM("Commanding... : " << key_string);
+			std::string str = arrayToString(input_buffer,size_frame);
+			ROS_DEBUG_STREAM("Frame reveived... : " << str);
 
 			parseCommand(input_buffer,19);
 			// reset
