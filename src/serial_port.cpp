@@ -103,7 +103,7 @@ bool SerialPort::sendChar(const char c[], int len)
 {
 	for(int i = 0; i<len; i++)
 	{
-		ROS_DEBUG("Sending command ... %d %x",i,(unsigned int)(unsigned char)c[i]);
+		ROS_DEBUG("Sending byte... %d %x",i,(unsigned int)(unsigned char)c[i]);
 	}
 
   return write(serial_port_fd_, (const void*)c, len);
