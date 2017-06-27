@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>teraranger_hub_multiflex</name>
+
   <version>1.0.0</version>
   <description>The teraranger_hub_multiflex package</description>
 
@@ -11,6 +12,7 @@
   <url type="repository">https://github.com/Terabee/teraranger_hub_multiflex</url>
   <url type="website">http://wiki.ros.org/teraranger_hub_multiflex</url>
   <license>GNU GPL</license>
+
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>dynamic_reconfigure</build_depend>
@@ -23,5 +25,6 @@
   <run_depend>rospy</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
+
 
 </package>

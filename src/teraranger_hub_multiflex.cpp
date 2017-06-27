@@ -303,29 +303,29 @@ void Teraranger_hub_multiflex::dynParamCallback(const teraranger_hub_multiflex::
 	  }
   }
 
-  else if (level == 0)
-  {
-	  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_Fast)
-	  {
-	    setMode(FAST_MODE);
-		ROS_INFO("Fast mode set");
-	  }
-
-	  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_Precise)
-	  {
-	    setMode(PRECISE_MODE);
-		ROS_INFO("Precise mode set");
-	  }
-
-	  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_LongRange)
-	  {
-	    setMode(LONG_RANGE_MODE);
-		ROS_INFO("Long range mode set");
-	  }
-  }
+  // else if (level == 0)
+  // {
+  //  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_Fast)
+  //  {
+  //    setMode(FAST_MODE);
+  // ROS_INFO("Fast mode set");
+  //  }
+  //
+  //  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_Precise)
+  //  {
+  //    setMode(PRECISE_MODE);
+  // ROS_INFO("Precise mode set");
+  //  }
+  //
+  //  if (config.Mode == teraranger_hub_multiflex::Teraranger_hub_multiflex_LongRange)
+  //  {
+  //    setMode(LONG_RANGE_MODE);
+  // ROS_INFO("Long range mode set");
+  //  }
+  // }
   else
   {
-	  ROS_WARN("Wrong level bitmask, got %d", level);
+	  ROS_DEBUG("Dynamic reconfigure, got %d", level);
   }
 
 }
