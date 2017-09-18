@@ -1,3 +1,7 @@
+# DEPRECATION warning
+
+This package will not be supported in the future. To get the latest updates please use [teraranger_array package](https://github.com/Terabee/teraranger_array) with teraranger_multiflex node.
+
 # TeraRanger hub Multiflex package for ROS
 
 This repository contains a package for [TeraRanger hub Multiflex](http://www.teraranger.com/products/teraranger-multiflex/) time of flight sensors.
